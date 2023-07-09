@@ -1,6 +1,45 @@
 const { Post } = require('../models')
 
 module.exports.index = (req, res, next) => {
+  /*
+  if (req.query.dateRange == 'Past Week'){
+    
+  }
+  */
+  Post.find()
+    .populate('comments')
+    .sort('-createdAt')
+    .then(posts => {
+      res.locals.data = { posts }
+      res.locals.status = 200
+      return next()
+    })
+    .catch(err => {
+      console.error(err)
+      res.locals.error = { error: err.message }
+      return next()
+    })
+}
+
+module.exports.test = (req, res, next) => {
+  let userDate = new Date(req.query.createdAt)
+  console.log(userDate.toISOString())
+  
+  let testPost = new Post({
+    author: 'Anonymous',
+    text: 'Hi',
+    title: '??',
+    createdAt: userDate.toISOString()
+  })
+
+  testPost.save()
+    .then((result) => {
+      res.send(result)
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+
   Post.find()
     .populate('comments')
     .sort('-createdAt')
