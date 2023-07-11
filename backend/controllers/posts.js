@@ -1,16 +1,36 @@
 const { Post } = require('../models')
 
+//type in before running frontend: export NODE_OPTIONS=--openssl-legacy-provider
+
 module.exports.index = (req, res, next) => {
-  /*
-  if (req.query.dateRange == 'Past Week'){
-    
-  }
-  */
-  Post.find()
+  let recentDate = new Date(req.query.currDate)
+  let oldDate = new Date (req.query.currDate)
+  if (req.query.dateRange == 'Past week'){
+    oldDate.setDate(recentDate.getDate() - 7)
+    oldDate.setHours(0, 0, 0, 0)
+        Post
+        .find({ createdAt: { $lte: recentDate, $gte: oldDate}})
+        .populate('comments')
+        .sort('-createdAt')
+        .then(posts => {
+          res.locals.data = {posts}
+          res.locals.status = 200
+          return next()
+        })
+        .catch(err => {
+        console.error(err)
+        res.locals.error = { error: err.message }
+        return next()
+        })
+      }
+  else if (req.query.dateRange == 'Past month'){
+    oldDate.setMonth(recentDate.getMonth()-1)
+    oldDate.setHours(0, 0, 0, 0)
+    Post.find({ createdAt: { $lte: recentDate, $gte: oldDate}})
     .populate('comments')
     .sort('-createdAt')
     .then(posts => {
-      res.locals.data = { posts }
+      res.locals.data = {posts}
       res.locals.status = 200
       return next()
     })
@@ -18,13 +38,75 @@ module.exports.index = (req, res, next) => {
       console.error(err)
       res.locals.error = { error: err.message }
       return next()
+      })
+    }
+    else if (req.query.dateRange == 'Past year'){
+      oldDate.setFullYear(recentDate.getFullYear()-1)
+      oldDate.setHours(0, 0, 0, 0)
+      Post.find({ createdAt: { $lte: recentDate, $gte: oldDate}})
+      .populate('comments')
+      .sort('-createdAt')
+      .then(posts => {
+        res.locals.data = {posts}
+        res.locals.status = 200
+        return next()
+      })
+      .catch(err => {
+      console.error(err)
+      res.locals.error = { error: err.message }
+      return next()
+      })
+    }
+    else if (req.query.dateRange == 'A year ago'){
+      oldDate.setFullYear(recentDate.getFullYear()-1)
+      Post.find({ createdAt: { $lte: oldDate}})
+      .populate('comments')
+      .sort('-createdAt')
+      .then(posts => {
+        res.locals.data = {posts}
+        res.locals.status = 200
+        return next()
+      })
+      .catch(err => {
+      console.error(err)
+      res.locals.error = { error: err.message }
+      return next()
+      })
+    }
+    else if (req.query.dateRange == 'Ancient times'){
+      oldDate.setFullYear(recentDate.getFullYear()-10)
+        Post.find({ createdAt: { $lte: oldDate }})
+        .populate('comments')
+        .sort('-createdAt')
+        .then(posts => {
+          res.locals.data = {posts}
+          res.locals.status = 200
+          return next()
+        })
+        .catch(err => {
+        console.error(err)
+        res.locals.error = { error: err.message }
+        return next()
     })
-}
+    }else {
+      Post.find()
+      .populate('comments')
+      .sort('-createdAt')
+      .then(posts => {
+        res.locals.data = { posts }
+        res.locals.status = 200
+        return next()
+     })
+      .catch(err => {
+        console.error(err)
+        res.locals.error = { error: err.message }
+        return next()
+     })
+    }
+  }
 
 module.exports.test = (req, res, next) => {
-  let userDate = new Date(req.query.createdAt)
-  console.log(userDate.toISOString())
-  
+  let userDate = new Date(req.query.date)
   let testPost = new Post({
     author: 'Anonymous',
     text: 'Hi',
@@ -32,25 +114,17 @@ module.exports.test = (req, res, next) => {
     createdAt: userDate.toISOString()
   })
 
-  testPost.save()
-    .then((result) => {
-      res.send(result)
-    })
-    .catch((err) => {
-      console.log(err)
-    })
-
-  Post.find()
-    .populate('comments')
-    .sort('-createdAt')
-    .then(posts => {
-      res.locals.data = { posts }
+  testPost
+    .save()
+    .then(post => {
+      res.locals.data = { post }
       res.locals.status = 200
       return next()
     })
-    .catch(err => {
+    .catch((err) => {
       console.error(err)
       res.locals.error = { error: err.message }
+      res.locals.status = 400
       return next()
     })
 }
@@ -134,3 +208,5 @@ module.exports.comment = (req, res, next) => {
       return next()
     })
 }
+
+

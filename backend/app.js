@@ -8,6 +8,8 @@ const swaggerUiGenerator = require('express-swagger-generator')
 
 // Load Env Variables
 require('dotenv').config()
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, './.env') });
 
 const app = express()
 app.use(cors())
@@ -22,7 +24,6 @@ mongoose
   })
   .then(_ => console.log('Successfully Connected to MongoDB'))
   .catch(err => console.log('Error connecting to MongoDB', err))
-
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
