@@ -1,6 +1,6 @@
 const { Post } = require('../models')
 
-//type in before running frontend: export NODE_OPTIONS=--openssl-legacy-provider
+//type into terminal before running frontend: export NODE_OPTIONS=--openssl-legacy-provider
 
 module.exports.index = (req, res, next) => {
   let recentDate = new Date(req.query.currDate)
@@ -105,8 +105,24 @@ module.exports.index = (req, res, next) => {
     }
   }
 
+module.exports.get = (req, res, next) => {
+  Post.findById(req.params.id)
+    .populate('comments')
+    .then(post => {
+      res.locals.data = { post }
+      res.locals.status = post === null ? 404 : 200
+      return next()
+    })
+    .catch(err => {
+      console.error(err)
+      res.locals.errors = { error: err.message }
+      return next()
+    })
+}
+
 module.exports.test = (req, res, next) => {
   let userDate = new Date(req.query.date)
+  console.log(userDate.toISOString())
   let testPost = new Post({
     author: 'Anonymous',
     text: 'Hi',
@@ -125,21 +141,6 @@ module.exports.test = (req, res, next) => {
       console.error(err)
       res.locals.error = { error: err.message }
       res.locals.status = 400
-      return next()
-    })
-}
-
-module.exports.get = (req, res, next) => {
-  Post.findById(req.params.id)
-    .populate('comments')
-    .then(post => {
-      res.locals.data = { post }
-      res.locals.status = post === null ? 404 : 200
-      return next()
-    })
-    .catch(err => {
-      console.error(err)
-      res.locals.errors = { error: err.message }
       return next()
     })
 }
